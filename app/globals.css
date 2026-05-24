@@ -1,0 +1,638 @@
+/* ─────────────────────────────────────────────
+   Anders Vance — Portfolio
+   Pine teal / stone dust / earth accent
+   The cube is a real Rubik's cube — rows and
+   columns twist; the page solves with the scroll.
+   ───────────────────────────────────────────── */
+
+:root {
+  /* Palette law */
+  --paper:     #EDEAE0;   /* stone dust paper */
+  --paper-warm:#E6E2D5;
+  --ink:       #1B3C30;   /* pine teal — body color */
+  --ink-soft:  #38554A;
+  --ink-mute:  #6B7E73;
+  --rule:      #C3C2B6;
+  --earth:     #7A5E30;   /* accent — used 3x per chapter view ONLY */
+
+  /* Six cube face colors — all derived from the pine/stone/earth family.
+     Each face is one of these in the solved state. */
+  --face-0: #1B3C30;  /* pine deep   — CH.00 Front  */
+  --face-1: #B0C0B0;  /* pine sage   — CH.01 Right  */
+  --face-2: #EDEAE0;  /* stone paper — CH.02 Bottom */
+  --face-3: #C9BFA8;  /* stone warm  — CH.03 Back   */
+  --face-4: #7A5E30;  /* earth mid   — CH.04 Left   */
+  --face-5: #C5A975;  /* earth pale  — CH.05 Top    */
+
+  --cube-size: 360px;
+  --face-pad: 14px;
+  --sticker-gap: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-image:
+    radial-gradient(1200px 600px at 12% 25%, rgba(255,255,255,.35), transparent 70%),
+    radial-gradient(900px 500px at 88% 88%, rgba(27,60,48,.05), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* paper grain — botanical-atlas feel */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: .32;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.18   0 0 0 0 0.24   0 0 0 0 0.19   0 0 0 .11 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ─── chrome ─── */
+.chrome {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 22px 36px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  mix-blend-mode: multiply;
+}
+.chrome .lockup { color: var(--ink); letter-spacing: .12em; white-space: nowrap; }
+.chrome .lockup b { font-weight: 500; }
+.chrome .right { display: flex; gap: 28px; white-space: nowrap; }
+@media (max-width: 1100px) {
+  .chrome { padding: 16px 22px; font-size: 10px; }
+  .chrome .right { gap: 18px; }
+  .chrome .right span:nth-child(1) { display: none; }
+}
+
+/* progress rail along the right edge */
+.rail {
+  position: fixed;
+  top: 50%; right: 28px;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex; flex-direction: column;
+  gap: 14px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .1em;
+  mix-blend-mode: multiply;
+}
+.rail .tick {
+  display: grid;
+  grid-template-columns: 28px 24px auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-mute);
+  transition: color .4s ease;
+  cursor: pointer;
+}
+.rail .tick .bar {
+  height: 1px; background: var(--ink-mute);
+  transition: background .4s, width .4s;
+}
+.rail .tick.is-active { color: var(--ink); }
+.rail .tick.is-active .bar { background: var(--ink); width: 44px; margin-left: -16px; }
+.rail .tick .num { font-weight: 500; }
+
+/* ─── frame layout ─── */
+.frame { position: relative; width: 100%; }
+
+.stage {
+  position: sticky;
+  top: 0;
+  width: 42vw;
+  min-width: 480px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  float: left;
+}
+.stage::after {
+  content: "";
+  position: absolute;
+  bottom: 24%;
+  left: 50%;
+  width: 320px;
+  height: 30px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(27,60,48,.32), transparent 70%);
+  filter: blur(10px);
+  z-index: -1;
+}
+
+@media (max-width: 1100px) {
+  :root { --cube-size: 300px; }
+  .stage { width: 38vw; min-width: 340px; }
+  .chapters { padding: 0 5vw 0 2vw; }
+}
+@media (max-width: 720px) {
+  :root { --cube-size: 240px; }
+  .stage { width: 100vw; min-width: 0; position: relative; height: 60vh; float: none; }
+  .chapters { margin-left: 0; width: 100%; padding: 0 6vw; }
+  .rail { display: none; }
+}
+
+/* ─── cube ─── */
+.cube-wrap {
+  width: var(--cube-size);
+  height: var(--cube-size);
+  perspective: 1600px;
+  perspective-origin: 50% 45%;
+  margin-bottom: 36px;
+  transition: transform .8s ease;
+}
+.cube-wrap.is-breathing { animation: breathe 6s ease-in-out infinite; }
+
+.cube {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--cube-size) * -0.5));
+  will-change: transform;
+}
+
+/* breathing while idle (settled near integer face) — on wrap so it doesn't
+   fight the 3D rotation transform React sets on .cube */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.018); }
+}
+
+/* page-load intro */
+.cube.is-loading { animation: cubeIntro 1.6s cubic-bezier(.34,1.4,.4,1) both; }
+@keyframes cubeIntro {
+  0%   { opacity: 0; transform: translateZ(calc(var(--cube-size) * -0.5)) rotateX(-18deg) rotateY(34deg) scale(.78); }
+  100% { opacity: 1; transform: translateZ(calc(var(--cube-size) * -0.5)) rotateX(0) rotateY(0) scale(1); }
+}
+
+/* ─── face: a Rubik face that twists row-by-row (or col-by-col) ─── */
+.face {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  border-radius: 22px;
+  padding: var(--face-pad);
+  display: flex;
+  gap: var(--sticker-gap);
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.05),
+    inset 0 0 50px rgba(0,0,0,.32);
+}
+.face.row-twist { flex-direction: column; }
+.face.col-twist { flex-direction: row; }
+
+.face.front  { transform: translateZ(calc(var(--cube-size) * 0.5)); }
+.face.back   { transform: rotateY(180deg) translateZ(calc(var(--cube-size) * 0.5)); }
+.face.right  { transform: rotateY( 90deg) translateZ(calc(var(--cube-size) * 0.5)); }
+.face.left   { transform: rotateY(-90deg) translateZ(calc(var(--cube-size) * 0.5)); }
+.face.top    { transform: rotateX( 90deg) translateZ(calc(var(--cube-size) * 0.5)); }
+.face.bottom { transform: rotateX(-90deg) translateZ(calc(var(--cube-size) * 0.5)); }
+
+/* twist line — a row or column of 3 stickers that rotates as a unit */
+.twist-line {
+  flex: 1;
+  display: flex;
+  gap: var(--sticker-gap);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.face.row-twist .twist-line { flex-direction: row; }
+.face.col-twist .twist-line { flex-direction: column; }
+
+/* sticker — a 3D card with a scrambled "front" and a target "back" */
+.sticker {
+  flex: 1;
+  position: relative;
+  transform-style: preserve-3d;
+  min-width: 0;
+  min-height: 0;
+}
+.sticker .panel {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c, var(--paper));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 1px 2px rgba(0,0,0,.16);
+  overflow: hidden;
+}
+.face.row-twist .sticker .panel.back { transform: rotateX(180deg); }
+.face.col-twist .sticker .panel.back { transform: rotateY(180deg); }
+
+/* stone-dust texture per sticker — applied to both faces of the card */
+.sticker .panel::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' seed='2'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .26 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: .5;
+  pointer-events: none;
+}
+
+/* center sticker label — chapter identity */
+.sticker .panel .label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  letter-spacing: .08em;
+  font-weight: 500;
+  z-index: 2;
+}
+.sticker .panel.dark-label  .label { color: rgba(27,60,48,.82); }
+.sticker .panel.light-label .label { color: rgba(237,234,224,.94); }
+
+/* ─── twist indicator (earth accent — USE #3) ─── */
+.twist-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.twist-indicator .bars {
+  display: flex; gap: 4px;
+}
+.twist-indicator .bar {
+  position: relative;
+  width: 22px; height: 6px;
+  border: 1px solid var(--earth);
+  overflow: hidden;
+}
+.twist-indicator .bar::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: var(--fill, 0%);
+  background: var(--earth);
+  transition: width .2s ease;
+}
+.twist-indicator .kind {
+  color: var(--earth);
+  font-weight: 500;
+}
+.twist-indicator .face-name {
+  color: var(--ink);
+}
+
+/* ─── chapter content ─── */
+.chapters {
+  position: relative;
+  margin-left: 42vw;
+  width: 58vw;
+  min-width: 0;
+  padding: 0 8vw 0 4vw;
+  z-index: 5;
+}
+
+.chapter {
+  min-height: 100vh;
+  padding: 22vh 0 12vh;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  position: relative;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity .8s ease, transform 1s cubic-bezier(.2,.7,.2,1);
+  will-change: opacity, transform;
+}
+.chapter.is-active { opacity: 1; transform: translateX(0); }
+
+/* eyebrow — TWO earth uses live here (label color + rule line) */
+.chapter .eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--earth);                        /* EARTH USE 1: chapter label */
+  margin-bottom: 22px;
+  display: flex; align-items: baseline; gap: 14px;
+}
+.chapter .eyebrow .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--earth);                   /* EARTH USE 2: accent rule */
+  opacity: .55;
+}
+.chapter .eyebrow .count { color: var(--ink-mute); }
+
+.chapter h1 {
+  font-family: "Instrument Serif", "Times New Roman", serif;
+  font-weight: 400;
+  font-size: clamp(48px, 6.2vw, 96px);
+  line-height: .98;
+  letter-spacing: -.015em;
+  color: var(--ink);
+  margin-bottom: 28px;
+  text-wrap: balance;
+}
+.chapter h1 em { font-style: italic; color: var(--ink); }
+.chapter h1 .small {
+  display: block;
+  font-size: 0.4em;
+  font-style: italic;
+  color: var(--ink-soft);
+  letter-spacing: 0;
+  margin-top: 10px;
+}
+
+.chapter .lede {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(20px, 1.6vw, 26px);
+  line-height: 1.35;
+  color: var(--ink-soft);
+  max-width: 36ch;
+  margin-bottom: 36px;
+  font-style: italic;
+}
+
+.chapter p.body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink);
+  max-width: 48ch;
+  margin-bottom: 14px;
+}
+
+.chapter .meta-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 36px;
+  row-gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  max-width: 520px;
+}
+.chapter .meta-grid dt { color: var(--ink-mute); }
+.chapter .meta-grid dd { color: var(--ink); }
+
+/* projects list */
+.projects {
+  display: flex; flex-direction: column;
+  border-top: 1px solid var(--rule);
+  max-width: 620px;
+  margin-top: 8px;
+}
+.projects .row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto 80px;
+  align-items: baseline;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 14px;
+  cursor: pointer;
+  transition: padding-left .3s ease, color .3s ease;
+}
+.projects .row:hover { padding-left: 8px; }
+.projects .row .idx {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px; color: var(--ink-mute);
+  letter-spacing: .1em;
+}
+.projects .row .name {
+  font-family: "Instrument Serif", serif;
+  font-size: 22px; color: var(--ink);
+  line-height: 1.1;
+}
+.projects .row .name .sub {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+.projects .row .tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 4px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+.projects .row .yr {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-align: right;
+}
+
+/* principles */
+.principles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 40px;
+  max-width: 640px;
+  margin-top: 12px;
+}
+.principle {
+  border-top: 1px solid var(--rule);
+  padding-top: 14px;
+}
+.principle .num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+.principle h3 {
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.08;
+  margin-bottom: 8px;
+}
+.principle p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* notes */
+.notes {
+  max-width: 620px;
+  margin-top: 8px;
+}
+.notes .note {
+  display: grid;
+  grid-template-columns: 90px 1fr 70px;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+  cursor: pointer;
+  transition: padding-left .3s;
+}
+.notes .note:hover { padding-left: 6px; }
+.notes .note .date,
+.notes .note .pages {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.notes .note .pages { text-align: right; }
+.notes .note .title {
+  font-family: "Instrument Serif", serif;
+  font-size: 20px;
+  line-height: 1.2;
+}
+.notes .note .title em { color: var(--ink); font-style: italic; }
+
+/* contact */
+.contact {
+  max-width: 560px;
+  display: flex; flex-direction: column;
+  gap: 24px;
+  margin-top: 8px;
+}
+.contact a.big {
+  font-family: "Instrument Serif", serif;
+  font-size: clamp(28px, 3.6vw, 48px);
+  text-decoration: none;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 4px;
+  width: fit-content;
+  transition: opacity .3s;
+  font-style: italic;
+}
+.contact a.big:hover { opacity: .65; }
+
+.contact .channels { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.contact .channels a {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  transition: color .25s, border-color .25s, background .25s;
+}
+.contact .channels a:hover {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* toc / CH.00 */
+.toc {
+  margin-top: 12px;
+  display: flex; flex-direction: column;
+  border-top: 1px solid var(--rule);
+  max-width: 520px;
+}
+.toc .toc-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 60px;
+  gap: 20px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: padding-left .3s;
+}
+.toc .toc-row:hover { padding-left: 6px; }
+.toc .toc-row .name {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  letter-spacing: .04em;
+  text-transform: none;
+  color: var(--ink);
+}
+
+/* scroll cue */
+.scroll-cue {
+  position: fixed;
+  left: 28px;
+  bottom: 28px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  display: flex; align-items: center; gap: 10px;
+  z-index: 40;
+  transition: opacity .5s;
+}
+.scroll-cue .line {
+  display: inline-block;
+  width: 36px; height: 1px;
+  background: var(--ink-mute);
+  position: relative;
+  overflow: hidden;
+}
+.scroll-cue .line::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--ink);
+  animation: cue 1.8s ease-in-out infinite;
+}
+@keyframes cue {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.scroll-cue.is-hidden { opacity: 0; pointer-events: none; }
+
+/* corner crops */
+.crop {
+  position: fixed;
+  width: 14px; height: 14px;
+  z-index: 30;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.crop.tl { top: 14px; left: 14px;  border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+.crop.tr { top: 14px; right: 14px; border-top: 1px solid var(--ink); border-right: 1px solid var(--ink); }
+.crop.bl { bottom: 14px; left: 14px;  border-bottom: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+.crop.br { bottom: 14px; right: 14px; border-bottom: 1px solid var(--ink); border-right: 1px solid var(--ink); }
