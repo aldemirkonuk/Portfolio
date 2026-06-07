@@ -1,5 +1,5 @@
-import PortfolioApp from '../components/portfolio/PortfolioApp'
+import App from '../components/portfolio/App'
 
 export default function Home() {
-  return <PortfolioApp />
+  return <App />
 }

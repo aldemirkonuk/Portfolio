@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'Aldemir Konuk',
+  title: 'Aldemir Konuk — Portfolio',
   description: 'I read the floor. I find the gap. I build there.',
   openGraph: {
     title: 'Aldemir Konuk',

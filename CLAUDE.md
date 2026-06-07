@@ -37,7 +37,7 @@ Read SKILL.md before writing any component.
 
 **Owner:** Aldemir Konuk  
 **Site:** aldemirkonuk.com | **GitHub:** aldemirkonuk  
-**Model:** claude-opus-4-7 at xhigh effort (set in .claude/settings.json)
+**Model:** claude-opus-4-8 at xhigh effort (set in .claude/settings.json)
 
 ### Who Aldemir Is
 - Born Antalya, Turkey. Mediterranean coast. Spatial intelligence from birth.
@@ -48,7 +48,13 @@ Read SKILL.md before writing any component.
 - Everything he builds: the hunger to understand how things were made and why.
 
 ### The Opening Statement
-> *"I read the floor. I find the gap. I build there."*
+> *"I read the floor. I find the gap. I weigh the risk. I build there."*
+
+### The ML Vision (what the work must be)
+- **Machine learning, not dashboards.** The flagship learns from data — detection, tracking, value & risk models, decision-grading. Hard-coded rules are not the flagship.
+- **Unique, not a tutorial reskin.** Fork the best open-source pipeline (Roboflow/Skalski), then add the layer no one else has: reading the floor + pricing the risk.
+- **The thesis runs through the code.** Spatial intelligence → the gap → risk-vs-reward, from the basketball court to every component.
+- North star + full spec: `mission.md`, `Talent Between the Lines/READ_THE_FLOOR.md`.
 
 ---
 
@@ -187,9 +193,30 @@ Cube geometry disassembles entirely. Lines draw between related skills on hover.
 One sentence. One link. The wireframe pulses once, then holds still. Silence is the design.
 
 ### Project Cards (Work face)
+- **Read the Floor** — FLAGSHIP. CV + ML system that renders the value of the floor on basketball footage (who guards whom, the gap, the read, the risk). Lives in `Talent Between the Lines/`. Spec: `Talent Between the Lines/READ_THE_FLOOR.md`. Prototype: `Talent Between the Lines/prototypes/matchup_engine.gif`.
 - Restaurant AI Automation
 - Bracket Analyzer
-- TBD (Aldemir to specify)
+
+> The Work face leads with **Read the Floor** — the thesis made executable. The others are supporting evidence.
+
+### Projects (independent — briefly indexed here; each lives in its own folder)
+The main page **is** the portfolio (the Rubik's cube + chapters). The projects below are
+separate, self-contained builds — only indexed here; each is described in depth inside its
+own folder.
+
+**In progress**
+- **Talent Between the Lines** — the *Read the Floor* flagship. CV + ML that renders the value of the floor on basketball footage (who guards whom, the gap, the read, the risk). Folder: `Talent Between the Lines/` (spec `READ_THE_FLOOR.md`, prototype `prototypes/matchup_engine.gif`, setup `read_the_floor/SETUP.md`).
+
+**Shipped**
+- SelfHive
+
+**Candidates**
+- Restaurant AI Automation
+- Bracket Analyzer — reads a competitive field, finds the mispriced gap/upset lane
+- Earthquake predictor
+- Vibration game
+- Game story
+- Inviphy — intersection of fields to surface new inventions and tools
 
 ---
 
