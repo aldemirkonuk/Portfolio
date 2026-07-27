@@ -45,14 +45,16 @@ export const CHAPTERS = [
       <div className="projects">
         {[
           { idx: "01", name: "Restaurant AI",      sub: "Operations copilot · MVP → series A", yr: "2025" },
-          { idx: "02", name: "Atlas Field Notes",  sub: "Research client · iOS + web",         yr: "2025" },
+          { idx: "02", name: "Selfhive", href: "https://selfhive.aldemirkonuk.com", sub: "Autonomous agent company", yr: "2026" },
           { idx: "03", name: "Konuk Type Studio",  sub: "Two display families, in progress",   yr: "2024" },
           { idx: "04", name: "Şehir Maps",         sub: "Civic wayfinding system",             yr: "2024" },
         ].map((p) => (
           <div className="row" key={p.idx}>
             <span className="idx">{p.idx}</span>
             <span className="name">
-              {p.name}
+              {p.href
+                ? <a className="proj-link" href={p.href} target="_blank" rel="noopener noreferrer">{p.name}</a>
+                : p.name}
               <span className="sub">{p.sub}</span>
             </span>
             <span className="yr">{p.yr}</span>

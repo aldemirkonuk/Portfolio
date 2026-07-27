@@ -269,6 +269,14 @@ body::before {
   font-size: 10px;
   color: var(--ink-mute);
 }
+.card .projects .row .name .proj-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  transition: opacity .25s;
+}
+.card .projects .row .name .proj-link:hover { opacity: .6; }
 
 /* craft / skills constellation — a tight tag-cluster, not really nodes
    (treatment deferred); arranged with slight offsets for atlas feel */
