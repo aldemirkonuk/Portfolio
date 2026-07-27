@@ -421,7 +421,7 @@ body::before {
   height: 1px;
   background: rgba(237,234,224,.16);
   border-radius: 2px;
-  transform: scaleX(1);
+  transform: translateY(-50%) scaleX(1);
   pointer-events: none;
   transition: background 160ms ease, transform 160ms ease;
 }
@@ -437,7 +437,7 @@ body::before {
   background: rgba(237,234,224,.95);
 }
 .pill-tick.is-near {
-  transform: scaleX(1.3);
+  transform: translateY(-50%) scaleX(1.3);
 }
 
 .pill-lead {
@@ -448,6 +448,7 @@ body::before {
   opacity: .25;
   box-shadow: 0 0 9px rgba(255,255,255,.85);
   pointer-events: none;
+  transform: translateY(-50%);
   transition: opacity 200ms ease;
 }
 .pill-lead.is-hot { opacity: 1; }
@@ -476,13 +477,15 @@ body::before {
 .rail-chapters {
   grid-column: 2;
   grid-row: 2;
-  display: flex;
-  flex-direction: column;
+  position: relative;
   min-height: 0;
   width: 78px;
 }
 .rail-ch {
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -495,7 +498,6 @@ body::before {
   letter-spacing: inherit;
   color: rgba(27,60,48,.45);
   transition: color 200ms ease;
-  min-height: 0;
 }
 .rail-ch .rail-dash {
   width: 9px; height: 1px;
