@@ -10,7 +10,7 @@
   --ink-soft:  #38554A;
   --ink-mute:  #6B7E73;
   --rule:      #C3C2B6;
-  --earth:     #7A5E30;   /* used exactly 3x per chapter view, no more */
+  --earth:     #7A5E30;   /* accent — card eyebrow + pill dial fill/caps */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -172,14 +172,14 @@ body::before {
   font-size: 10.5px;
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: var(--earth);                    /* EARTH USE 1 — chapter label */
+  color: var(--earth);                    /* card chapter label */
   margin-bottom: 14px;
   display: flex; align-items: baseline; gap: 12px;
 }
 .card .eyebrow .rule {
   flex: 1;
   height: 1px;
-  background: var(--earth);              /* EARTH USE 2 — accent rule */
+  background: var(--earth);              /* card accent rule */
   opacity: .55;
 }
 .card .eyebrow .count { color: var(--ink-mute); }
@@ -322,7 +322,7 @@ body::before {
 .card .grid-contrib .cell.l2 { background: #6B8A77; }
 .card .grid-contrib .cell.l3 { background: #1B3C30; }
 
-/* ─── twist indicator (EARTH USE 3) ─── */
+/* ─── twist indicator ─── */
 .twist-indicator {
   position: fixed;
   left: 50%;
@@ -338,44 +338,180 @@ body::before {
   white-space: nowrap;
   background: rgba(237,234,224,.7);
   backdrop-filter: blur(6px);
-  border: 1px solid var(--earth);          /* EARTH USE 3 */
+  border: 1px solid rgba(27, 60, 48, 0.18);
   padding: 6px 14px;
   border-radius: 999px;
 }
 .twist-indicator .kind {
-  color: var(--earth);
+  color: var(--ink);
   font-weight: 500;
 }
 
-/* ─── rail (chapter navigation, right edge) ─── */
+/* ─── rail — 1A pill dial + chapter list (right edge) ─── */
 .rail {
   position: fixed;
-  top: 50%; right: 24px;
+  top: 50%; right: 28px;
   transform: translateY(-50%);
   z-index: 60;
-  display: flex; flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: auto 78px;
+  grid-template-rows: auto 1fr auto;
+  column-gap: 10px;
+  row-gap: 5px;
+  height: min(62vh, 460px);
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: .1em;
-  mix-blend-mode: multiply;
 }
-.rail .tick {
-  display: grid;
-  grid-template-columns: 28px 24px auto;
+
+.pill-cap-top-slot {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.pill-cap-top {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 7px solid #152820;
+  opacity: 1;
+  transition: border-bottom-width 200ms ease, border-bottom-color 200ms ease, opacity 200ms ease;
+  flex-shrink: 0;
+}
+.pill-cap-top.is-active { border-bottom-color: var(--earth); }
+.pill-cap-top.is-faint  { opacity: .4; border-bottom-color: rgba(27,60,48,.28); }
+
+.pill-track {
+  grid-column: 1;
+  grid-row: 2;
+  width: 26px;
+  min-height: 0;
+  background: #152820;
+  border-radius: 16px;
+  position: relative;
+  cursor: grab;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  transition: width 200ms ease, transform 150ms ease-out;
+  justify-self: center;
+}
+.pill-track:active { cursor: grabbing; }
+.pill-track.is-moving { width: 31px; }
+
+.pill-seg {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+}
+.pill-seg-fill {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: var(--earth);
+  /* no height transition — scroll updates every frame */
+}
+
+.pill-tick {
+  position: absolute;
+  left: 9px; right: 9px;
+  height: 1px;
+  background: rgba(237,234,224,.16);
+  border-radius: 2px;
+  transform: scaleX(1);
+  pointer-events: none;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.pill-tick.is-major {
+  left: 4px; right: 4px;
+  height: 3px;
+  background: rgba(237,234,224,.55);
+}
+.pill-tick.is-passed {
+  background: rgba(237,234,224,.45);
+}
+.pill-tick.is-major.is-passed {
+  background: rgba(237,234,224,.95);
+}
+.pill-tick.is-near {
+  transform: scaleX(1.3);
+}
+
+.pill-lead {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: #fff;
+  opacity: .25;
+  box-shadow: 0 0 9px rgba(255,255,255,.85);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.pill-lead.is-hot { opacity: 1; }
+
+.pill-cap-bot-slot {
+  grid-column: 1;
+  grid-row: 3;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 15px;
+}
+
+.pill-cap-bot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(27,60,48,.28);
+  transition: width 200ms ease, height 200ms ease, background 200ms ease;
+  flex-shrink: 0;
+}
+.pill-cap-bot.is-active,
+.pill-cap-bot.is-solved {
+  background: var(--earth);
+}
+
+.rail-chapters {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 78px;
+}
+.rail-ch {
+  flex: 1;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--ink-mute);
-  transition: color .4s ease;
+  gap: 5px;
+  background: none;
+  border: 0;
+  padding: 0;
   cursor: pointer;
+  text-align: left;
+  font: inherit;
+  letter-spacing: inherit;
+  color: rgba(27,60,48,.45);
+  transition: color 200ms ease;
+  min-height: 0;
 }
-.rail .tick .bar {
-  height: 1px; background: var(--ink-mute);
-  transition: background .4s, width .4s;
-  width: 16px;
+.rail-ch .rail-dash {
+  width: 9px; height: 1px;
+  background: rgba(27,60,48,.15);
+  flex-shrink: 0;
+  transition: background 200ms ease;
 }
-.rail .tick.is-active { color: var(--ink); }
-.rail .tick.is-active .bar { background: var(--ink); width: 44px; margin-left: -16px; }
+.rail-ch .rail-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+.rail-ch.is-active { color: var(--ink); }
+.rail-ch.is-active .rail-dash { background: var(--ink); }
+.rail-ch.is-active .rail-label { font-weight: 600; }
 
 /* ─── scroll cue (only on Entry) ─── */
 .scroll-cue {
