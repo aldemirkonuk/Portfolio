@@ -453,6 +453,19 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3;opac
 .odds .tip{position:absolute;bottom:12px;left:50%;transform:translate(-50%,6px);width:max-content;max-width:min(360px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.45;color:var(--soft);box-shadow:0 14px 40px var(--shade);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .odds .tip button{margin-left:6px;background:none;border:0;padding:0;font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--court);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .odds:hover .tip,.odds.show .tip,.odds:focus-within .tip{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.trail{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:54;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.trail-b{background:none;border:0;padding:4px 2px;font:500 10px var(--mono);letter-spacing:.08em;color:var(--mute);opacity:.5;cursor:pointer;font-variant-numeric:tabular-nums;transition:opacity .25s}
+.trail-b:hover,.trail-b:focus-visible,.trail-b[aria-expanded="true"]{opacity:1;outline:none}
+.trail-p{width:min(270px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 14px 40px var(--shade)}
+.trail-h,.trail-f{margin:0;font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.trail-f{margin-top:8px;text-transform:none;letter-spacing:.02em;font-weight:500}
+.trail-p ol{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.trail-p li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:2px 10px;align-items:center;font-size:12px;color:var(--soft)}
+.trail-p li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trail-p li em{font:500 10px var(--mono);font-style:normal;color:var(--mute);font-variant-numeric:tabular-nums}
+.trail-p li i{grid-column:1/-1;height:2px;border-radius:2px;background:var(--court);opacity:.6;transform-origin:0 50%}
+.trail-p li.on span{color:var(--fg);font-weight:600}
+@media (prefers-reduced-motion:reduce){.trail-b{transition:none}}
 .oddsend{color:var(--mute);font-size:14px;min-height:1.4em}
 .math h4{margin:16px 0 6px;font:700 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
 .math p{margin:0 0 8px;color:var(--soft);font-size:14px;line-height:1.55}
@@ -639,7 +652,7 @@ p = 1 / (1 + e^-z)              // the line's length</pre>
         <div class="math" id="labMath" hidden>
           <h4>How far from home</h4>
           <p>There are 43,252,003,274,489,856,000 ways a cube can sit, and none needs more than 20 moves (Rokicki, Kociemba, Davidson and Dethridge proved it in 2010). Most sit at 18.</p>
-          <p>Up to 5 moves out, the distance is exact: I keep a table of every cube within 3 moves of solved and meet it halfway. Further out, Kociemba's two-phase algorithm finds a solution and I report its length, which is an upper bound. That's why far cubes say "about".</p>
+          <p>Up to 6 moves out, the distance is exact: I keep a table of every cube within 4 moves of solved and meet it halfway. Further out, Kociemba's two-phase algorithm finds a solution and I report its length, which is an upper bound. That's why far cubes say "about".</p>
           <h4>The live odds</h4>
           <p>Every position has 18 possible turns. Up to 4 moves out, I check all 18 exactly: closer, level, or further. That's the strip of squares, and you can click it. Across all 46,740 cubes within 4 moves of solved, the average is 1.1 closer, 2.2 level and 14.7 further.</p>
           <p>You're modelled as skill plus chance: with probability s you find a closer turn, otherwise you turn at random. s is learned from your own turns, starting from a Beta(2, 2) prior. A Markov chain over distance then gives the chance you're home within 20 turns, averaged over every value s could take.</p>
@@ -650,12 +663,12 @@ P(home within 20) = E_s[ P(chain hits 0 by step 20) ]
 random turner     = the same chain with s = 0</pre>
           <p>Far out (17+ moves) the turn mix is extrapolated from the known number of cubes at each distance.</p>
           <h4>Distance, in code</h4>
-          <pre>T = everyCubeWithin(3)            // ~3,900 states
+          <pre>T = everyCubeWithin(4)            // 46,741 states
 dist(c):
   if c in T            return T[c]
   for m in MOVES       if c&middot;m in T    return 1 + T[c&middot;m]
   for m,n in MOVES&sup2;   if c&middot;m&middot;n in T  return 2 + T[c&middot;m&middot;n]
-  return kociemba(c).length       // bound past 5
+  return kociemba(c).length       // bound past 6
 </pre>
           <p>The solver runs in a background thread in your browser, so the page never freezes. Library: cube.js (MIT), after Kociemba.</p>
         </div>
@@ -663,6 +676,7 @@ dist(c):
     </div>
   </div>
 </div>
+<div class="trail" id="trail"><div class="trail-p" id="trailP" hidden><p class="trail-h">Your visit so far</p><ol id="trailL"></ol><p class="trail-f">Kept in this tab only. Nothing is sent.</p></div><button type="button" class="trail-b" id="trailB" aria-expanded="false" aria-controls="trailP"><span id="trailTx">0:00 &middot; 0 m &middot; 0 clicks</span></button></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -722,12 +736,12 @@ EX.res='<ul class="tl">'+[
 
 var CH=[
  {g:'intro',l:'Hello',html:'hero'},
- {g:'studio',l:'Mudavim',cat:'Studio · Founder',t:'Mudavim.',
+ {g:'studio',l:'Mudavym',cat:'Studio · Founder',t:'Mudavym.',
   lead:"An <b>all-in-one platform for restaurants</b>, built AI-native: agents can change the site to improve the user experience. I'm the founder.",
   meta:[['Role','Founder'],['Product','All-in-one restaurant platform'],['Approach','AI-native'],['Hardest problem','Each agent stays reliable and efficient']],
   ex:EX.mud,
   did:["Designing the product so <b>AI agents can modify the site</b> to improve the user experience.","The hard part is not the first change; it is keeping every agent <b>reliable and efficient</b> over time."],
-  link:{href:'https://mudavym.com',label:'Visit Mudavim'},
+  link:{href:'https://mudavym.com',label:'Visit Mudavym'},
   tags:['Founder','AI agents','Restaurants']},
  {g:'court',l:'Off the clock',cat:'Story · Athletics',t:'Off the clock.',
   lead:"Training for <b>Hyrox</b>, captaining <b>MSU Club Basketball</b>, and playing a lot of sports, because I want to be the best athlete I can be. Same loop as the research: measure, adjust, repeat.",
@@ -766,7 +780,7 @@ function heroHTML(){
   '<h1 class="rv kn" aria-label="Aldemir Konuk"><span class="ln" aria-hidden="true">'+kSplit('Aldemir')+'</span><span class="ln" aria-hidden="true">'+kSplit('Konuk')+'</span></h1>'+
   '<p class="role rv">Cognitive-psychology research &middot; ML builder &middot; Founder</p>'+
   '<p class="lead rv">I study <b>how people think</b>, build models of <b>how brains respond</b>, and start companies where I find a gap. A former professional basketball player; the floor is still the question.</p>'+
-  '<div class="glance rv"><div><b><span class="cn" data-to="1">1</span></b><span>Company founded: Mudavim</span></div><div><b><span class="cn" data-to="1000">1000</span>+</b><span>Basketball clips, TRIBE v2</span></div><div><b><span class="cn" data-to="7">7</span></b><span>Multimodal ablation mixes</span></div><div><b>2027</b><span>B.S. Computer Science, Michigan State</span></div></div>'+
+  '<div class="glance rv"><div><b><span class="cn" data-to="1">1</span></b><span>Company founded: Mudavym</span></div><div><b><span class="cn" data-to="1000">1000</span>+</b><span>Basketball clips, TRIBE v2</span></div><div><b><span class="cn" data-to="7">7</span></b><span>Multimodal ablation mixes</span></div><div><b>2027</b><span>B.S. Computer Science, Michigan State</span></div></div>'+
   '<p class="cue rv">Scroll. The cube turns with you.</p>';
 }
 function finHTML(){
@@ -1079,6 +1093,7 @@ var bgAcc=0,bgLast=0;
 /* ---------- main loop ---------- */
 var last=performance.now();
 function frame(now){
+  if(labOn){last=now;requestAnimationFrame(frame);return}
   var dt=Math.min(.05,Math.max(.001,(now-last)/1000));last=now;
   // layer turn
   if(moving){
@@ -1804,7 +1819,7 @@ var labOpen=(function(){
   function turn(t,dur){q.push({t:t,dur:dur});pumpL()}
   function pumpL(){
     if(mv||!q.length)return;
-    var j=q.shift(),m=MAP[j.t[0]],o=tok(j.t),i={x:0,y:1,z:2}[m.a];
+    var j=q.shift();if(q.length>1&&!solving)j.dur=Math.min(j.dur,110);else if(q.length&&!solving)j.dur=Math.min(j.dur,160);var m=MAP[j.t[0]],o=tok(j.t),i={x:0,y:1,z:2}[m.a];
     mv={j:j,m:m,ang:m.d*o.n*Math.PI/2,lay:cbs.filter(function(c){return c.p[i]===m.l}),t0:performance.now()};
   }
   function step(now){
@@ -1829,29 +1844,37 @@ var labOpen=(function(){
     var C=G.Cube||self.Cube;C.initSolver();
     var MV=[];'UDLRFB'.split('').forEach(function(f){MV.push(f,f+"'",f+'2')});
     function inv(p){return p.split(' ').reverse().map(function(t){return t[1]==="'"?t[0]:t[1]==='2'?t:t[0]+"'"}).join(' ')}
+    var MC=MV.map(function(m){return new C().move(m)});
+    function nbr(c,i){return c.clone().multiply(MC[i])}
     var T={},fr=[[new C(),'']];T[fr[0][0].asString()]='';
-    for(var d=1;d<=3;d++){var nx=[];fr.forEach(function(e){var lastF=e[1]?e[1].slice(-2).trim()[0]:'';MV.forEach(function(m){if(m[0]===lastF)return;var c=e[0].clone();c.move(m);var k=c.asString();if(T[k]===undefined){var path=e[1]?e[1]+' '+m:m;T[k]=inv(path);nx.push([c,path])}})});fr=nx}
+    for(var d=1;d<=4;d++){var nx=[];fr.forEach(function(e){var lastF=e[1]?e[1].slice(-2).trim()[0]:'';MV.forEach(function(m,i){if(m[0]===lastF)return;var c=nbr(e[0],i);var k=c.asString();if(T[k]===undefined){var path=e[1]?e[1]+' '+m:m;T[k]=inv(path);if(d<4)nx.push([c,path])}})});fr=nx}
     function len(s){return s?s.split(' ').length:0}
     function dist0(c){
       var k=c.asString(),best=null,i,j,c1,c2,s1;
       if(T[k]!==undefined)return {d:len(T[k]),ex:1,sol:T[k]};
-      for(i=0;i<18;i++){c1=c.clone();c1.move(MV[i]);s1=T[c1.asString()];if(s1!==undefined){var cand=(MV[i]+' '+s1).trim();if(!best||len(cand)<len(best))best=cand}}
+      for(i=0;i<18;i++){c1=nbr(c,i);s1=T[c1.asString()];if(s1!==undefined){var cand=(MV[i]+' '+s1).trim();if(!best||len(cand)<len(best))best=cand}}
       if(best)return {d:len(best),ex:1,sol:best};
-      for(i=0;i<18;i++){c1=c.clone();c1.move(MV[i]);for(j=0;j<18;j++){if(MV[j][0]===MV[i][0])continue;c2=c1.clone();c2.move(MV[j]);s1=T[c2.asString()];if(s1!==undefined){var cand2=(MV[i]+' '+MV[j]+' '+s1).trim();if(!best||len(cand2)<len(best))best=cand2}}}
+      for(i=0;i<18;i++){c1=nbr(c,i);for(j=0;j<18;j++){if(MV[j][0]===MV[i][0])continue;c2=nbr(c1,j);s1=T[c2.asString()];if(s1!==undefined){var cand2=(MV[i]+' '+MV[j]+' '+s1).trim();if(!best||len(cand2)<len(best))best=cand2}}}
       if(best)return {d:len(best),ex:1,sol:best};
       var sol=c.solve(),L=len(sol);
       return {d:L,ex:0,sol:sol};
     }
     function ex5(c){
       var k=c.asString(),b=99,i,j,c1,c2,s1;if(T[k]!==undefined)return len(T[k]);
-      for(i=0;i<18;i++){c1=c.clone();c1.move(MV[i]);s1=T[c1.asString()];if(s1!==undefined)b=Math.min(b,1+len(s1))}
+      for(i=0;i<18;i++){c1=nbr(c,i);s1=T[c1.asString()];if(s1!==undefined)b=Math.min(b,1+len(s1))}
       if(b<99)return b;
-      for(i=0;i<18;i++){c1=c.clone();c1.move(MV[i]);for(j=0;j<18;j++){if(MV[j][0]===MV[i][0])continue;c2=c1.clone();c2.move(MV[j]);s1=T[c2.asString()];if(s1!==undefined)b=Math.min(b,2+len(s1))}}
+      for(i=0;i<18;i++){c1=nbr(c,i);for(j=0;j<18;j++){if(MV[j][0]===MV[i][0])continue;c2=nbr(c1,j);s1=T[c2.asString()];if(s1!==undefined)b=Math.min(b,2+len(s1))}}
       return b<99?b:6;
+    }
+    function simp(m){
+      var t=m.split(' ').filter(Boolean),o=[],q={'':1,"'":3,'2':2};
+      t.forEach(function(x){var f=x[0],n=q[x.slice(1)];if(o.length&&o[o.length-1][0]===f){var k=(o[o.length-1][1]+n)%4;if(k)o[o.length-1][1]=k;else o.pop()}else o.push([f,n])});
+      return o.map(function(x){return x[0]+(x[1]===1?'':x[1]===2?'2':"'")}).join(' ');
     }
     function dist(moves){
       var c=new C();if(moves)c.move(moves);var r=dist0(c);
-      if(r.ex&&r.d>0&&r.d<=4)r.nb=MV.map(function(m){var c1=c.clone();c1.move(m);return ex5(c1)});
+      if(!r.ex&&moves){var hs=simp(moves);if(len(hs)<r.d){r.d=len(hs);r.sol=inv(hs)}}
+      if(r.ex&&r.d>0&&r.d<=4)r.nb=MV.map(function(m,i){return ex5(nbr(c,i))});
       return r;
     }
     G.onmessage=function(e){var m=e.data;var r=dist(m.moves);r.id=m.id;G.postMessage(r)};
@@ -2040,7 +2063,31 @@ var labOpen=(function(){
     else done();
   }
   $('labBtn').addEventListener('click',function(e){e.stopPropagation();open()});
+  $('labBtn').addEventListener('pointerenter',startBrain);
+  setTimeout(function(){(window.requestIdleCallback||setTimeout)(startBrain)},3500);
   return open;
+})();
+
+/* ---------- quiet visit trail: time, scroll and clicks per chapter, kept in this tab ---------- */
+(function(){
+  var secs=CH.map(function(){return 0}),clk=CH.map(function(){return 0}),px=0,lastY=window.scrollY||0,lastT=performance.now(),open=false,key='';
+  var tx=$('trailTx'),btn=$('trailB'),pnl=$('trailP'),list=$('trailL'),root=$('trail');
+  addEventListener('scroll',function(){var y=window.scrollY||pageYOffset;px+=Math.abs(y-lastY);lastY=y},{passive:true});
+  document.addEventListener('pointerdown',function(e){if(e.target.closest&&e.target.closest('#trail'))return;clk[cur]++},true);
+  function mmss(t){t=Math.floor(t);return Math.floor(t/60)+':'+('0'+t%60).slice(-2)}
+  function dist(p){var m=p*0.0254/96;return m<1?Math.round(m*100)+' cm':m.toFixed(1)+' m'}
+  function render(){
+    var tot=secs.reduce(function(a,b){return a+b},0),c=clk.reduce(function(a,b){return a+b},0);
+    var t=mmss(tot)+' · '+dist(px)+' · '+c+' click'+(c===1?'':'s');
+    if(t!==tx.textContent)tx.textContent=t;
+    if(!open)return;
+    var mx=Math.max.apply(null,secs)||1,h='';
+    CH.forEach(function(ch,i){h+='<li'+(i===cur?' class="on"':'')+'><span>'+ch.l+'</span><em>'+mmss(secs[i])+'</em><em>'+clk[i]+'</em><i style="transform:scaleX('+(secs[i]/mx).toFixed(3)+')"></i></li>'});
+    if(h!==key){key=h;list.innerHTML=h}
+  }
+  setInterval(function(){var now=performance.now(),dt=Math.min(5,(now-lastT)/1000);lastT=now;if(document.visibilityState==='visible')secs[cur]+=dt;render()},1000);
+  btn.addEventListener('click',function(){open=!open;pnl.hidden=!open;btn.setAttribute('aria-expanded',String(open));render()});
+  document.addEventListener('click',function(e){if(open&&!root.contains(e.target)){open=false;pnl.hidden=true;btn.setAttribute('aria-expanded','false')}});
 })();
 
 /* ---------- boot ---------- */
