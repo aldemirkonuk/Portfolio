@@ -1034,7 +1034,7 @@ addEventListener('pointermove',function(e){hasPtr=true;P.x=e.clientX;P.y=e.clien
 addEventListener('pointerdown',function(e){if(!cubebox.contains(e.target))pulse(e.clientX,e.clientY,.6)},{passive:true});
 
 /* ---------- background field ---------- */
-var LINE='96,88,72';
+var LINE='107,115,69',OLIVE=[107,115,69],OLIVE_N=[150,160,108]; /* quiet-luxury olive dashes */
 var bg=$('bg'),bx=bg.getContext('2d'),BW=0,BH=0,DPR=1,pulses=[];
 function sizeBg(){DPR=Math.min(devicePixelRatio||1,1.75);BW=innerWidth;BH=innerHeight;bg.width=BW*DPR;bg.height=BH*DPR;bx.setTransform(DPR,0,0,DPR,0,0)}
 sizeBg();addEventListener('resize',sizeBg);
@@ -1067,7 +1067,7 @@ function drawBg(now,dt){
     }
   }
   bx.lineCap='round';bx.lineWidth=1.5;
-  for(var i=0;i<4;i++){bx.strokeStyle='rgba('+LINE+','+(.14+i*.06)+')';bx.stroke(bp[i]);bx.strokeStyle='rgba('+(accCur[0]|0)+','+(accCur[1]|0)+','+(accCur[2]|0)+','+(.32+i*.2)+')';bx.lineWidth=1.5+i*.35;bx.stroke(ap[i])}
+  for(var i=0;i<4;i++){bx.strokeStyle='rgba('+LINE+','+(.14+i*.06)+')';bx.stroke(bp[i]);bx.strokeStyle='rgba('+(night?OLIVE_N:OLIVE).join(',')+','+(.32+i*.2)+')';bx.lineWidth=1.5+i*.35;bx.stroke(ap[i])}
 }
 
 /* ---------- confetti ---------- */
