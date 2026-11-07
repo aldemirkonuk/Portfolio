@@ -531,6 +531,25 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3;opac
 .flow .no{-webkit-text-stroke-color:#C9D1AE}
 .flow .cat,.flow .did li::before,.flow .tags span{color:#C9D1AE}
 .flow .tags span{border-color:rgba(201,209,174,.45)}
+.tapmode li[data-act]{cursor:pointer;border-radius:10px;-webkit-tap-highlight-color:transparent}
+.tapmode li[data-act]::after{content:"\2192";margin-left:8px;color:var(--mute)}
+.tapmode li[data-act]:active{background:var(--tint)}
+.tapmode li:not([data-act]){opacity:.7}
+.flow{--mint:#A9BFAF;--court:#9FB1CB;--gold:#C9D1AE;--paper:#1F2A22}
+/* phone: full-bleed olive panel, lighter paint cost, bigger touch targets */
+@media (max-width:900px){
+  .flow::before{left:-16px;right:-16px}
+  .fig{left:auto;right:max(6px,env(safe-area-inset-right,0px));bottom:calc(44px + env(safe-area-inset-bottom,0px));opacity:.4}
+  .trail-b{opacity:.9;background:#1F2A22;color:#C9D1AE;padding:6px 10px;border-radius:999px}
+  .labbtn{position:relative;z-index:9}
+}
+@media (hover:none),(pointer:coarse){
+  body::after{display:none}
+  .blobs i{will-change:auto}
+  .pip{position:relative}
+  .pip::after{content:"";position:absolute;inset:-12px -4px}
+  .btn{min-height:40px}
+}
 </style>
 
 <div class="blobs" aria-hidden="true"><i></i><i></i></div>
@@ -608,13 +627,13 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:3;opac
       <li><kbd>Scroll</kbd>Every chapter turns a layer of the cube.</li>
       <li><kbd>Click</kbd>The cube jumps to the next chapter.</li>
       <li><kbd>Drag</kbd>Orbit the cube.</li>
-      <li><kbd>C</kbd>Cube lab. Mess it up, then watch it come home.</li>
-      <li><kbd>M</kbd>Digit span test, the real kind.</li>
-      <li><kbd>R</kbd>Read the floor. Find the open teammate.</li>
+      <li data-act="lab"><kbd>C</kbd>Cube lab. Mess it up, then watch it come home.</li>
+      <li data-act="sp"><kbd>M</kbd>Digit span test, the real kind.</li>
+      <li data-act="rf"><kbd>R</kbd>Read the floor. Find the open teammate.</li>
       <li><kbd>S</kbd>Swap which side the cube lives on.</li>
-      <li><kbd>hyrox</kbd>Type it. Eight stations.</li>
-      <li><kbd>&uarr;&uarr;&darr;&darr;&larr;&rarr;&larr;&rarr; B A</kbd>You know the one. Lights off.</li>
-      <li><kbd>F</kbd>Switch the figure's style.</li>
+      <li data-act="hx"><kbd>hyrox</kbd>Type it. Eight stations.</li>
+      <li data-act="disco"><kbd>&uarr;&uarr;&darr;&darr;&larr;&rarr;&larr;&rarr; B A</kbd>You know the one. Lights off.</li>
+      <li data-act="fig"><kbd>F</kbd>Switch the figure's style.</li>
             <li><kbd>Photos</kbd>Drop up to six images on the page: each one wraps a face of the cube.</li>
     </ul>
   </div>
@@ -812,7 +831,7 @@ function chHTML(c,i){
   }
   return h+'</section>';
 }
-function paintCh(){[].forEach.call(document.querySelectorAll('.ch'),function(s,i){s.style.setProperty('--c',gcol(G[CH[i].g]))})}
+function paintCh(){[].forEach.call(document.querySelectorAll('.ch'),function(s,i){s.style.setProperty('--c',G[CH[i].g].d)})}
 document.documentElement.classList.add('js');
 (function(){var h='';CH.forEach(function(c,i){h+=chHTML(c,i)});$('flow').innerHTML=h;paintCh();
   [].forEach.call(document.querySelectorAll('.ch'),function(sec){[].forEach.call(sec.querySelectorAll('.rv'),function(e,k){e.style.setProperty('--d',k)})});
@@ -1021,14 +1040,16 @@ new ResizeObserver(layout).observe(stage);
 
 var down=null;
 cubebox.addEventListener('pointerdown',function(e){
-  down={x:e.clientX,y:e.clientY,t:performance.now(),moved:false};dragging=false;
+  down={x:e.clientX,y:e.clientY,t:performance.now(),moved:false,lx:e.clientX,ly:e.clientY};dragging=false;
   try{cubebox.setPointerCapture(e.pointerId)}catch(er){}
 });
 cubebox.addEventListener('pointermove',function(e){
   if(!down)return;
   var dx=e.clientX-down.x,dy=e.clientY-down.y;
   if(!down.moved&&Math.hypot(dx,dy)>7){down.moved=true;dragging=true}
-  if(dragging){userRy+=(e.movementX||0)*.55;userRx-=(e.movementY||0)*.4;userRx=clamp(userRx,-70,70);velY=(e.movementX||0)*.55;velX=-(e.movementY||0)*.4;lastDrag=performance.now()}
+  var mx=e.clientX-down.lx,my=e.clientY-down.ly;down.lx=e.clientX;down.ly=e.clientY;
+  var gain=e.pointerType==='touch'?1.5:1;
+  if(dragging){userRy+=mx*.55*gain;userRx-=my*.4*gain;userRx=clamp(userRx,-70,70);velY=mx*.55*gain;velX=-my*.4*gain;lastDrag=performance.now()}
 });
 function up(){
   if(!down)return;var was=down;down=null;
@@ -1043,7 +1064,7 @@ addEventListener('pointerdown',function(e){if(!cubebox.contains(e.target))pulse(
 /* ---------- background field ---------- */
 var LINE='107,115,69',OLIVE=[107,115,69],OLIVE_N=[150,160,108]; /* quiet-luxury olive dashes */
 var bg=$('bg'),bx=bg.getContext('2d'),BW=0,BH=0,DPR=1,pulses=[];
-function sizeBg(){DPR=Math.min(devicePixelRatio||1,1.75);BW=innerWidth;BH=innerHeight;bg.width=BW*DPR;bg.height=BH*DPR;bx.setTransform(DPR,0,0,DPR,0,0)}
+function sizeBg(){DPR=Math.min(devicePixelRatio||1,innerWidth<700?1:1.75);BW=innerWidth;BH=innerHeight;bg.width=BW*DPR;bg.height=BH*DPR;bx.setTransform(DPR,0,0,DPR,0,0)}
 sizeBg();addEventListener('resize',sizeBg);
 function pulse(x,y,str){
   if(reduced)return;
@@ -1123,7 +1144,7 @@ function frame(now){
   cube.style.transform='rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
   cubeRect=cubebox.getBoundingClientRect();
   bgAcc+=dt;var act=pulses.length||now-F.lastMove<500||spin||dragging;
-  if(now-bgLast>=(act?33:66)){drawBg(now,bgAcc);bgAcc=0;bgLast=now}
+  if(now-bgLast>=(BW<700?(act?50:110):(act?33:66))){drawBg(now,bgAcc);bgAcc=0;bgLast=now}
   drawFx(dt);figFrame(now,dt);depthFrame();heroFrame(now);oddsFrame(now);
   requestAnimationFrame(frame);
 }
@@ -1334,6 +1355,13 @@ function closeM(){if(openModal){openModal.classList.remove('open');openModal=nul
 document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',closeM)});
 document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeM()})});
 $('helpBtn').addEventListener('click',function(){openM('mHelp')});
+/* touch: the help list doubles as a launcher, since phones have no keys */
+(function(){
+  var mh=$('mHelp'),touch=matchMedia('(hover:none)').matches;
+  if(touch){mh.classList.add('tapmode');var sb=mh.querySelector('.sub');if(sb)sb.textContent='Tap one to try it.';}
+  var A={lab:function(){labOpen()},sp:function(){spOpen()},rf:function(){rfOpen()},hx:function(){hyrox()},disco:function(){disco()},fig:function(){cycleFig()}};
+  mh.addEventListener('click',function(e){var li=e.target.closest&&e.target.closest('li[data-act]');if(!li||!touch)return;var f=A[li.dataset.act];closeM();setTimeout(f,260)});
+})();
 function swap(){$('page').classList.toggle('swap');toast('Sides swapped');layout();pulse()}
 $('swapBtn').addEventListener('click',swap);
 
